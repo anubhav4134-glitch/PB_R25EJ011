@@ -166,6 +166,56 @@ void search_document(const Document *doc, const char *query) {
     }
 }
 
+
+/* Bonus: Replace word in document */
+void replace_document(Document *doc, const char *old_word, const char *new_word) {
+    if (strlen(old_word) == 0) {
+        printf("Error: Empty search word.\n");
+        return;
+    }
+
+    int count = 0;
+    LineNode *curr = doc->head;
+
+    while (curr != NULL) {
+        char *pos;
+        
+        while ((pos = strstr(curr->text, old_word)) != NULL) {
+            int old_len = strlen(old_word);
+            int new_len = strlen(new_word);
+            int current_len = strlen(curr->text);
+
+            char *new_text = malloc(current_len - old_len + new_len + 1);
+
+            if (new_text == NULL) {
+                printf("Error: Memory allocation failed.\n");
+                return;
+            }
+
+            /* Copy part before old word */
+            int before = pos - curr->text;
+            strncpy(new_text, curr->text, before);
+            new_text[before] = '\0';
+
+            /* Add new word */
+            strcat(new_text, new_word);
+
+            /* Add remaining part */
+            strcat(new_text, pos + old_len);
+
+            free(curr->text);
+            curr->text = new_text;
+
+            count++;
+        }
+
+        curr = curr->next;
+    }
+
+    printf("Total replacements: %d\n", count);
+}
+
+
 /* Bonus: Line & Word count */
 void document_stats(const Document *doc) {
     int words = 0;
@@ -203,6 +253,7 @@ int main(void) {
 
         char cmd;
         char arg[MAX_LINE_LEN] = {0};
+        char new_word[MAX_LINE_LEN] = {0};
         int num = 0;
 
         /* Check for search command: / <query> */
@@ -229,7 +280,13 @@ int main(void) {
                     printf("Error: Invalid line number %d.\n", num);
                 }
             }
-        } else if (sscanf(cmd_line, " %c %s", &cmd, arg) == 2 && (cmd == 's' || cmd == 'l')) {
+            
+        } 
+        else if (sscanf(cmd_line, " %c %s %s", &cmd, arg, new_word) == 3 && cmd == 'r') {
+            replace_document(&doc, arg, new_word);
+        }
+
+        else if (sscanf(cmd_line, " %c %s", &cmd, arg) == 2 && (cmd == 's' || cmd == 'l')) {
             if (cmd == 's') {
                 if (save_file(&doc, arg)) printf("Document saved to %s.\n", arg);
                 else printf("Error: Could not save to %s.\n", arg);
@@ -252,6 +309,7 @@ int main(void) {
                     printf("  i <n>       Insert line at position <n>\n");
                     printf("  d <n>       Delete line <n>\n");
                     printf("  / <query>   Search for word or phrase\n");
+                    printf("  r <old> <new> Replace word with another word\n");
                     printf("  s <file>    Save to file\n");
                     printf("  l <file>    Load from file\n");
                     printf("  w           Print line and word count\n");
