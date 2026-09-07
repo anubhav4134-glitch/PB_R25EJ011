@@ -1,7 +1,7 @@
 TEAM MEMBERS :
 Arun H Kalamuddhi
 Anubhav Tiwari
-Kanisk Sinha 
+
 
 LINE EDITOR :
 
